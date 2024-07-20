@@ -1,66 +1,81 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-const pgp = require("pg-promise")(/* options */);
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = process.env.DB_URL;
 
-const db = pgp({
-  host: "localhost", // Default host
-  port: 5432, // Default port
-  database: "wedding-invitation", // Your new database name
-  user: "banudtn", // The owner of the new database
-  password: "postgres", // The password for the owner
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
+
+let db;
+
+async function connectDB() {
+  try {
+    // Connect the client to the server
+    await client.connect();
+    // Select the database you want to work with
+    db = client.db("banu");
+    console.log("Connected to MongoDB!");
+  } catch (err) {
+    console.error("Failed to connect to MongoDB", err);
+    throw err; // Throw the error so that the calling code knows about the failure
+  }
+}
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-db.one("SELECT $1 AS value", 123)
-  .then((data) => {
-    console.log("DATA:", data.value);
+connectDB()
+  .then(() => {
+    app.get("/", (req, res) => {
+      res.send("Hello World!");
+    });
+
+    app.get("/comments", async (req, res) => {
+      const { tag } = req.query;
+
+      if (!tag) {
+        return res.status(400).send("query tag required");
+      }
+
+      try {
+        const data = await db.collection("be-wedding-inv").find({ tag }).toArray();
+        res.json(data);
+      } catch (error) {
+        console.error("ERROR:", error);
+        res.status(500).send("Error fetching comments.");
+      }
+    });
+
+    app.post("/comment", async (req, res) => {
+      const { name, comment, tag } = req.body;
+
+      const now = new Date();
+      try {
+        await db
+          .collection("be-wedding-inv")
+          .insertOne({ name: name, comment: comment, tag: tag, created_at: now });
+        res.send("Comment saved successfully!");
+      } catch (error) {
+        console.error("ERROR:", error);
+        res.status(500).send("Error saving comment.");
+      }
+    });
+
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
   })
-  .catch((error) => {
-    console.log("ERROR:", error);
+  .catch((err) => {
+    console.error("Failed to start server", err);
   });
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/comments", (req, res) => {
-  const { tag } = req.query;
-  db.any(`SELECT name, comment, tag FROM wishes WHERE tag='${tag}'`)
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((error) => {
-      console.error("ERROR:", error);
-      res.status(500).send("Error fetching comments.");
-    });
-});
-
-app.post("/comment", (req, res) => {
-  const { name, comment, tag } = req.body;
-  const now = new Date();
-
-  // Insert data into the database
-  db.none("INSERT INTO wishes(name, comment, tag, created_at) VALUES($1, $2, $3, $4)", [
-    name,
-    comment,
-    tag,
-    now,
-  ])
-    .then(() => {
-      res.send("Comment saved successfully!");
-    })
-    .catch((error) => {
-      console.error("ERROR:", error);
-      res.status(500).send("Error saving comment.");
-    });
-});
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
