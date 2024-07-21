@@ -1,4 +1,5 @@
 require("dotenv").config();
+const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -7,6 +8,13 @@ const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = process.env.DB_URL;
 
+mongoose
+  .connect(uri, {
+    tls: true, // Enable TLS/SSL
+    tlsInsecure: true, // Disable strict validation (not recommended for production)
+  })
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
