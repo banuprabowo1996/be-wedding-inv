@@ -23,7 +23,7 @@ async function connectDB() {
     // Connect the client to the server
     await client.connect();
     // Select the database you want to work with
-    db = client.db("banu");
+    db = client.db(process.env.DB_NAME);
     console.log("Connected to MongoDB!");
   } catch (err) {
     console.error("Failed to connect to MongoDB", err);
