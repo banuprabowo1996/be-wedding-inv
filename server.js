@@ -90,7 +90,4 @@ connectDB()
     console.error("Failed to start server", err);
   });
 
-// ❌ Jangan pakai app.listen() di Vercel
-// app.listen(port, () => console.log(`Listening on port ${port}`));
-
-module.exports = app;
+app.listen(port, () => console.log(`Listening on port ${port}`));
