@@ -57,7 +57,10 @@ connectDB()
       }
 
       try {
-        const data = await db.collection("be-wedding-inv").find({ tag }).toArray();
+        const data = await db
+          .collection("be-wedding-inv")
+          .find({ tag })
+          .toArray();
         res.json(data);
       } catch (error) {
         console.error("ERROR:", error);
@@ -70,20 +73,24 @@ connectDB()
 
       const now = new Date();
       try {
-        await db
-          .collection("be-wedding-inv")
-          .insertOne({ name: name, comment: comment, tag: tag, created_at: now });
+        await db.collection("be-wedding-inv").insertOne({
+          name,
+          comment,
+          tag,
+          created_at: now,
+        });
         res.send("Comment saved successfully!");
       } catch (error) {
         console.error("ERROR:", error);
         res.status(500).send("Error saving comment.");
       }
     });
-
-    app.listen(port, () => {
-      console.log(`Example app listening on port ${port}`);
-    });
   })
   .catch((err) => {
     console.error("Failed to start server", err);
   });
+
+// ❌ Jangan pakai app.listen() di Vercel
+// app.listen(port, () => console.log(`Listening on port ${port}`));
+
+module.exports = app;
