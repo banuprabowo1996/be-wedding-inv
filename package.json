@@ -1,13 +1,13 @@
 {
-  "name": "wedding-invitaion",
+  "name": "be-wedding-invitaion",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Banu Prabowo",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
