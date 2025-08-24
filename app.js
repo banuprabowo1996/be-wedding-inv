@@ -2,6 +2,9 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
+const cron = require("node-cron");
+const axios = require("axios");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -91,3 +94,14 @@ connectDB()
   });
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
+
+// ====== CRON JOB UNTUK KEEP ALIVE ======
+cron.schedule("*/15 * * * *", async () => {
+  try {
+    const url = `https://be-wedding-inv.onrender.com/comments?tag=annisa-bagas`;
+    await axios.get(url);
+    console.log(`Ping sent to ${url} at ${new Date().toISOString()}`);
+  } catch (err) {
+    console.error("Ping failed:", err.message);
+  }
+});
